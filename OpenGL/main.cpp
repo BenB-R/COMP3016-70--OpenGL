@@ -113,30 +113,42 @@ int main()
     glDeleteShader(fragmentShader);
 #pragma endregion Shader Program
 
-#pragma region Verts
-    float vertices[] = {
-        -0.8f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        0.0f,  0.5f, 0.0f
+#pragma region Vertices
+    float vertices[] = { // Rect
+     0.6f,  0.5f, 0.0f,  // top right
+     0.5f, -0.5f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  // bottom left
+    -0.5f,  0.5f, 0.0f   // top left 
     };
-#pragma endregion Verts
+    unsigned int indices[] = {  // note that we start from 0!
+        0, 1, 3,   // first triangle
+        1, 2, 3    // second triangle
+    };
+#pragma endregion Vertices
 
 #pragma region Vertex Buffer Object (VBO)
     unsigned int VBO;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glGenBuffers(1, &VBO);  // Generate buffer and assign ID to VBO
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);  // Bind VBO to GL_ARRAY_BUFFER
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  // Load vertex data into buffer
 #pragma endregion Vertex Buffer Object (VBO)
 
 #pragma region Vertex Array Object (VAO)
     unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+    glGenVertexArrays(1, &VAO);  // Generate vertex array and assign ID to VAO
+    glBindVertexArray(VAO);  // Bind VAO
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);  // Define vertex data layout
+    glEnableVertexAttribArray(0);  // Enable vertex attribute at index 0
 #pragma endregion Vertex Array Object (VAO)
 
-    // Render loop
+#pragma region Element Buffer Object (EBO)
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+#pragma endregion Element Buffer Object (EBO)
+
+#pragma region Render Loop
     while (!glfwWindowShouldClose(window))
     {
         // Input
@@ -149,12 +161,19 @@ int main()
         // Drawing Triangle
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);  // Draw using element indices
 
         // Check and call events and swap the buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+#pragma endregion Render Loop
+
+#pragma region Clean up
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteProgram(shaderProgram);
+#pragma endregion
 
     glfwTerminate();
     return 0;
