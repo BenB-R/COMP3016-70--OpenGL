@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "headers/shader.h"
 
 #include <iostream>
 
@@ -38,85 +39,7 @@ int main()
     }
 #pragma endregion
 
-#pragma region Shaders
-    // Shader
-    const char* vertexShaderSource = "#version 330 core\n"
-        "layout (location = 0) in vec3 aPos;\n"
-        "layout (location = 1) in vec3 aColor;"
-        "out vec4 ourColor;\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = vec4(aPos, 1.0);\n"
-        "   ourColor = vec4(aColor, 1.0);"
-        "}\0";
-
-    const char* fragmentShaderSource = "#version 330 core\n"
-        "out vec4 FragColor;\n"
-        "in vec4 ourColor;\n"
-        "void main()\n"
-        "{\n"
-        "   FragColor = ourColor;\n"
-        "}\n\0";
-#pragma endregion
-
-#pragma region Shader Objects
-    //Vertex Shader
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL); // Attaching shader code to shader object
-    glCompileShader(vertexShader);
-
-    #pragma region Error Check
-    int  success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    #pragma endregion Error Check
-    
-    // Fragment Shader
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    #pragma region Error Check
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    #pragma endregion Error Check
-
-#pragma endregion Shader Objects
-
-#pragma region Shader Program
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader); // Attaching shader objects to shader program
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    #pragma region Error Check
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-
-    if (!success)
-    {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    #pragma endregion Error Check
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-#pragma endregion Shader Program
-
+    Shader ourShader("shaders/vertex_shader.vs", "shaders/fragment_shader.fs");
 
 #pragma region Vertices
     float vertices[] = {
@@ -157,6 +80,7 @@ int main()
 #pragma endregion Element Buffer Object (EBO)
 
 #pragma region Render Loop
+    // Render loop
     while (!glfwWindowShouldClose(window))
     {
         // Input
@@ -167,9 +91,9 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Drawing Triangle
-        glUseProgram(shaderProgram);
+        ourShader.use();  // Use our shader
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);  // Draw using element indices
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // Check and call events and swap the buffers
         glfwSwapBuffers(window);
@@ -180,7 +104,6 @@ int main()
 #pragma region Clean up
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteProgram(shaderProgram);
 #pragma endregion
 
     glfwTerminate();

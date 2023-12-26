@@ -21,6 +21,14 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\shader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="headers\shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\fragment_shader.fs" />
+    <None Include="shaders\vertex_shader.vs" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
