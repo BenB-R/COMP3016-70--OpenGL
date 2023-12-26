@@ -3,6 +3,11 @@
 #include "headers/shader.h"
 #include "headers/stb_image.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+
 #include <iostream>
 
 // Function prototypes
@@ -85,6 +90,17 @@ int main()
     };
 #pragma endregion Vertices
 
+    // Create transformation matrix
+    glm::mat4 trans = glm::mat4(1.0f);
+    trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f)); // Adjust the translation values as needed
+
+    // Get the uniform location
+    ourShader.use();
+    unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+    // Pass the transformation matrix to the shader
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+
 #pragma region Vertex Buffer Object (VBO)
     unsigned int VBO;
     glGenBuffers(1, &VBO);  // Generate buffer and assign ID to VBO
@@ -125,8 +141,17 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Drawing Triangle
-        ourShader.use();  // Use our shader
+        // Create transformation matrix
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f)); // Position offset
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate over time
+
+        // Get the uniform location and pass the matrix to the shader
+        ourShader.use();
+        unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+        // Drawing the shape
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
