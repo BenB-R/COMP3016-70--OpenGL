@@ -42,18 +42,22 @@ int main()
     // Shader
     const char* vertexShaderSource = "#version 330 core\n"
         "layout (location = 0) in vec3 aPos;\n"
+        "layout (location = 1) in vec3 aColor;"
+        "out vec4 ourColor;\n"
         "void main()\n"
         "{\n"
-        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "   gl_Position = vec4(aPos, 1.0);\n"
+        "   ourColor = vec4(aColor, 1.0);"
         "}\0";
 
     const char* fragmentShaderSource = "#version 330 core\n"
         "out vec4 FragColor;\n"
+        "in vec4 ourColor;\n"
         "void main()\n"
         "{\n"
-        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+        "   FragColor = ourColor;\n"
         "}\n\0";
-    #pragma endregion
+#pragma endregion
 
 #pragma region Shader Objects
     //Vertex Shader
@@ -113,12 +117,14 @@ int main()
     glDeleteShader(fragmentShader);
 #pragma endregion Shader Program
 
+
 #pragma region Vertices
-    float vertices[] = { // Rect
-     0.6f,  0.5f, 0.0f,  // top right
-     0.5f, -0.5f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f   // top left 
+    float vertices[] = {
+        0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // top right
+        0.5f, -0.5f, 0.0f,  0.0f, 0.8f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, // bottom left
+        -0.5f,  0.5f, 0.0f, 1.0f, 0.84f, 0.0f  // top left 
+        // positions         // colors
     };
     unsigned int indices[] = {  // note that we start from 0!
         0, 1, 3,   // first triangle
@@ -137,8 +143,10 @@ int main()
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);  // Generate vertex array and assign ID to VAO
     glBindVertexArray(VAO);  // Bind VAO
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);  // Define vertex data layout
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);  // Define vertex data layout
     glEnableVertexAttribArray(0);  // Enable vertex attribute at index 0
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 #pragma endregion Vertex Array Object (VAO)
 
 #pragma region Element Buffer Object (EBO)
