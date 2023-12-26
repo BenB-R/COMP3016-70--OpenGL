@@ -25,10 +25,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\shader.h" />
+    <ClInclude Include="headers\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\fragment_shader.fs" />
     <None Include="shaders\vertex_shader.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="textures\bear.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
