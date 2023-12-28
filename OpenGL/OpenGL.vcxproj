@@ -24,6 +24,8 @@
     <ClCompile Include="src\shader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="headers\camera.h" />
+    <ClInclude Include="headers\mesh.h" />
     <ClInclude Include="headers\shader.h" />
     <ClInclude Include="headers\stb_image.h" />
   </ItemGroup>
