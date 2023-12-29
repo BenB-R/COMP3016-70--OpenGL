@@ -22,6 +22,9 @@
     <Filter Include="Assets\Textures">
       <UniqueIdentifier>{24ddaac7-1d11-494a-9580-158b4508ef5e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\Models">
+      <UniqueIdentifier>{b008a1dd-a18e-4f16-8e49-cb4a36a52ca2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c">
@@ -31,6 +34,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="setup\stbSetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,6 +53,9 @@
     <ClInclude Include="headers\mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="headers\model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\fragment_shader.fs">
@@ -54,6 +63,9 @@
     </None>
     <None Include="shaders\vertex_shader.vs">
       <Filter>Shader Files</Filter>
+    </None>
+    <None Include="models\wooden_plank.fbx">
+      <Filter>Assets\Models</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
