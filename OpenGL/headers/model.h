@@ -28,24 +28,39 @@ class Model
 public:
     // model data 
     vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
-    vector<Mesh>    meshes;
+    vector<Mesh> meshes;
     string directory;
     bool gammaCorrection;
+    bool isLightSource;
 
     // constructor, expects a filepath to a 3D model.
-    Model(string const& path, bool gamma = false) : gammaCorrection(gamma)
-    {
+    Model(string const& path, bool gamma = false, bool isLightSource = false)
+        : gammaCorrection(gamma), isLightSource(isLightSource) {
         loadModel(path);
     }
 
     // draws the model, and thus all its meshes
     void Draw(Shader& shader)
     {
-        for (unsigned int i = 0; i < meshes.size(); i++)
-            meshes[i].Draw(shader);
+        if (isLightSource) {
+            // Extract position from modelMatrix
+            glm::vec3 lightPos = glm::vec3(model[3]);
+
+            // Set light properties in shader
+            shader.use();
+            shader.setVec3("light.position", lightPos);
+            shader.setVec3("light.color", glm::vec3(1.0f)); // white light
+        }
+        else {
+            shader.use();
+            shader.setMat4("model", model); // Pass the corrected model matrix to the shader
+            for (unsigned int i = 0; i < meshes.size(); i++)
+                meshes[i].Draw(shader);
+        }
     }
 
 private:
+    glm::mat4 model = glm::mat4(1.0f);
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void loadModel(string const& path)
     {
@@ -233,6 +248,7 @@ unsigned int TextureFromFile(const char* path, const string& directory, bool gam
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         stbi_image_free(data);
+        std::cout << "Texture loaded at path: " << path << std::endl;
     }
     else
     {

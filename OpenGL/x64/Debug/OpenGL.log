@@ -1,9 +1,9 @@
 ﻿  main.cpp
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(76,28): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(145,21): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(146,21): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(150,23): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(151,23): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(152,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(153,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(81,28): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(149,21): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(150,21): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(154,23): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(155,23): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(156,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(157,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   OpenGL.vcxproj -> C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\x64\Debug\OpenGL.exe

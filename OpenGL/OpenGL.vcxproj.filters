@@ -67,6 +67,9 @@
     <None Include="models\wooden_plank.fbx">
       <Filter>Assets\Models</Filter>
     </None>
+    <None Include="shaders\light_fragment_shader.fs">
+      <Filter>Shader Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="textures\bear.png">
