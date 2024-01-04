@@ -5,6 +5,7 @@
 #include "headers/stb_image.h"
 #include "headers/camera.h"
 #include "headers/model.h"
+#include "headers/CaveGenerator.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -70,16 +71,20 @@ int main()
 
     Shader ourShader("shaders/vertex_shader.vs", "shaders/fragment_shader.fs");
     Shader lightShader("shaders/vertex_shader.vs", "shaders/light_fragment_shader.fs");
+    Shader caveShader("shaders/cave_vertex_shader.vs", "shaders/cave_fragment_shader.fs");
 
     Model woodPlank("models/wood/wood.obj");
 
+    CaveGenerator cave(100, 100, 100, 0.5f);
+    cave.generateCave();
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 #pragma region Render Loop
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
         // Calculate delta time for smooth camera movement
         float currentFrame = glfwGetTime();
-        float deltaTime = currentFrame - lastFrame;
+        deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
         // Input
@@ -89,21 +94,39 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // don't forget to enable shader before setting uniforms
-        ourShader.use();
+        // Set up shader for cave
+        caveShader.use();
 
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        // Set up camera and projection matrices
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom),
+            (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.getViewMatrix();
-        ourShader.setMat4("projection", projection);
-        ourShader.setMat4("view", view);
+        caveShader.setMat4("projection", projection);
+        caveShader.setMat4("view", view);
 
-        // render the loaded model
+        // Set up model transformation
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model);
-        woodPlank.Draw(ourShader);
+        // Apply transformations as needed
+        caveShader.setMat4("model", model);
+
+        // Set the color of the cave walls (dark grey)
+        caveShader.setVec3("objectColor", glm::vec3(0.2f, 0.2f, 0.2f));
+
+        // Set the light color (white)
+        caveShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+
+        // Set the direction of the light (for example, coming from the top-right-front)
+        caveShader.setVec3("lightDir", glm::normalize(glm::vec3(1.0f, -1.0f, -1.0f)));
+
+        // Set the ambient strength (for a dimly lit cave environment)
+        caveShader.setVec3("ambientStrength", glm::vec3(0.3f, 0.3f, 0.3f));
+
+        // Set the normal for each vertex (this should actually come from your vertex data)
+        // For testing purposes, you can set a global normal like this:
+        caveShader.setVec3("normal", glm::vec3(0.0f, 0.0f, 1.0f));
+
+        // Render the cave
+        cave.render(); // This binds its own VAO and use its own vertex data
 
         glfwSwapBuffers(window);
         glfwPollEvents();

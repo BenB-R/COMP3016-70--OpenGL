@@ -21,11 +21,13 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="setup\stbSetup.cpp" />
+    <ClCompile Include="src\CaveGenerator.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\camera.h" />
+    <ClInclude Include="headers\CaveGenerator.h" />
     <ClInclude Include="headers\mesh.h" />
     <ClInclude Include="headers\model.h" />
     <ClInclude Include="headers\shader.h" />
@@ -33,6 +35,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="models\wooden_plank.fbx" />
+    <None Include="shaders\cave_fragment_shader.fs" />
+    <None Include="shaders\cave_vertex_shader.vs" />
     <None Include="shaders\fragment_shader.fs" />
     <None Include="shaders\light_fragment_shader.fs" />
     <None Include="shaders\vertex_shader.vs" />

@@ -39,6 +39,9 @@
     <ClCompile Include="setup\stbSetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\CaveGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\shader.h">
@@ -56,6 +59,9 @@
     <ClInclude Include="headers\model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="headers\CaveGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\fragment_shader.fs">
@@ -68,6 +74,12 @@
       <Filter>Assets\Models</Filter>
     </None>
     <None Include="shaders\light_fragment_shader.fs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\cave_fragment_shader.fs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\cave_vertex_shader.vs">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>
