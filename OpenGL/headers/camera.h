@@ -18,6 +18,7 @@ const float PITCH = 0.0f;
 const float SPEED = 2.5f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
+const float SPRINT_MULTIPLIER = 8.0f;
 
 class Camera {
 public:
@@ -36,6 +37,7 @@ public:
     float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
+    float SprintMultiplier;
 
     // Constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
@@ -44,7 +46,8 @@ public:
         Front(glm::vec3(0.0f, 0.0f, -1.0f)),
         MovementSpeed(SPEED),
         MouseSensitivity(SENSITIVITY),
-        Zoom(ZOOM) {
+        Zoom(ZOOM),
+        SprintMultiplier(SPRINT_MULTIPLIER) {
         Position = position;
         WorldUp = up;
         Yaw = yaw;
@@ -58,8 +61,11 @@ public:
     }
 
     // Processes input received from any keyboard-like input system
-    void processKeyboard(Camera_Movement direction, float deltaTime) {
+    void processKeyboard(Camera_Movement direction, float deltaTime, bool isSprinting) {
         float velocity = MovementSpeed * deltaTime;
+        if (isSprinting) {
+            velocity *= SprintMultiplier;
+        }
         if (direction == FORWARD)
             Position += Front * velocity;
         if (direction == BACKWARD)

@@ -1,36 +1,27 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec3 Normal; // Normal vector passed from the vertex shader
-in vec3 FragPos; // Fragment position passed from the vertex shader
+in vec3 Normal;
+in vec3 FragPos;
 
-struct Light {
-    vec3 position;
-    vec3 color;
-};
-
-uniform Light light;
 uniform vec3 viewPos; // Camera position
+uniform vec3 glowColor = vec3(1.0, 0.0, 0.0); // Dim blue color
 
 void main()
 {
-    // Ambient component
-    float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * light.color;
+    // Calculate the distance from the camera to the fragment
+    float distance = length(viewPos - FragPos);
 
-    // Diffuse component
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(light.position - FragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * light.color;
+    // Calculate the glow intensity based on the distance
+    float glowIntensity = 1.0 / (distance * distance);
 
-    // Specular component
-    float specularStrength = 0.5;
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = specularStrength * spec * light.color;
+    glowIntensity = clamp(glowIntensity, 0.0, 1.0); // Ensure it's between 0 and 1
 
-    vec3 result = (ambient + diffuse + specular) * texture(texture_diffuse1, TexCoords).rgb;
-    FragColor = vec4(result, 1.0);
+    // Base color of the crystal (adjust as needed)
+    vec3 baseColor = vec3(0.2, 0.3, 0.7); 
+
+    // Blend the base color with the glow color
+    vec3 color = mix(baseColor, glowColor, glowIntensity);
+
+    FragColor = vec4(color, 1.0);
 }

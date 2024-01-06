@@ -25,6 +25,9 @@
     <Filter Include="Assets\Models">
       <UniqueIdentifier>{b008a1dd-a18e-4f16-8e49-cb4a36a52ca2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\setup">
+      <UniqueIdentifier>{d02c0b8f-3c12-4679-84f8-e5bd61a56025}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c">
@@ -36,10 +39,13 @@
     <ClCompile Include="src\shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="setup\stbSetup.cpp">
+    <ClCompile Include="src\CaveGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CaveGenerator.cpp">
+    <ClCompile Include="setup\stbSetup.cpp">
+      <Filter>Source Files\setup</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,6 +68,9 @@
     <ClInclude Include="headers\CaveGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="headers\crystal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\fragment_shader.fs">
@@ -80,6 +89,9 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="shaders\cave_vertex_shader.vs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\light_vertex_shader.vs">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

@@ -7,6 +7,22 @@ CaveGenerator::CaveGenerator(int depth, int width, int height, float threshold)
     : depth(depth), width(width), height(height), threshold(threshold) {
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
+
+    std::vector<glm::vec3> crystalPositions;
+
+    // Pre-calculate noise values
+    noiseValues.resize(depth, std::vector<std::vector<float>>(height, std::vector<float>(width)));
+    for (int z = 0; z < depth; ++z) {
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                noiseValues[z][y][x] = perlinNoise(x, y, z);
+            }
+        }
+    }
+
+    // Generate and apply Perlin worm
+    generatePerlinWorm(50, 12, 12, 1000, 25.0);
+    carveCorridor(20, 40, 20, 10, 8, 40);
 }
 
 CaveGenerator::~CaveGenerator() {
@@ -15,6 +31,7 @@ CaveGenerator::~CaveGenerator() {
 }
 
 void CaveGenerator::generateCave() {
+    std::vector<Vertex> vertexData;
     vertices.clear();
     normals.clear();
 
@@ -22,56 +39,106 @@ void CaveGenerator::generateCave() {
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 if (isSolid(x, y, z)) {
-                    // Add faces for the solid block
-                    addFace(x, y, z, glm::vec3(1.0f, 0.0f, 0.0f)); // Right face
-                    addFace(x, y, z, glm::vec3(-1.0f, 0.0f, 0.0f)); // Left face
-                    addFace(x, y, z, glm::vec3(0.0f, 1.0f, 0.0f)); // Top face
-                    addFace(x, y, z, glm::vec3(0.0f, -1.0f, 0.0f)); // Bottom face
-                    addFace(x, y, z, glm::vec3(0.0f, 0.0f, 1.0f)); // Front face
-                    addFace(x, y, z, glm::vec3(0.0f, 0.0f, -1.0f)); // Back face
+                    // Check each face for a neighboring block and add face if no neighbor exists
+                    if (!hasNeighbour(x, y, z, glm::vec3(1.0f, 0.0f, 0.0f))) {
+                        addFace(vertexData, x, y, z, glm::vec3(1.0f, 0.0f, 0.0f)); // Right face
+                    }
+                    if (!hasNeighbour(x, y, z, glm::vec3(-1.0f, 0.0f, 0.0f))) {
+                        addFace(vertexData, x, y, z, glm::vec3(-1.0f, 0.0f, 0.0f)); // Left face
+                    }
+                    if (!hasNeighbour(x, y, z, glm::vec3(0.0f, 1.0f, 0.0f))) {
+                        addFace(vertexData, x, y, z, glm::vec3(0.0f, 1.0f, 0.0f)); // Top face
+                    }
+                    if (!hasNeighbour(x, y, z, glm::vec3(0.0f, -1.0f, 0.0f))) {
+                        addFace(vertexData, x, y, z, glm::vec3(0.0f, -1.0f, 0.0f)); // Bottom face
+                    }
+                    if (!hasNeighbour(x, y, z, glm::vec3(0.0f, 0.0f, 1.0f))) {
+                        addFace(vertexData, x, y, z, glm::vec3(0.0f, 0.0f, 1.0f)); // Front face
+                    }
+                    if (!hasNeighbour(x, y, z, glm::vec3(0.0f, 0.0f, -1.0f))) {
+                        addFace(vertexData, x, y, z, glm::vec3(0.0f, 0.0f, -1.0f)); // Back face
+                    }
                 }
             }
         }
     }
 
-    // Update VAO and VBO for vertices and normals
+#pragma region VAOs & VBOs
+    // Update VAO and VBO for vertices, normals, and texture coordinates
     glBindVertexArray(vao);
 
-    // Bind vertices
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
+
+    // After buffering vertexData to the GPU
+    vertexCount = vertexData.size(); // Store the number of vertices
+
+    // Vertex positions
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // Bind normals
-    GLuint normalVBO;
-    glGenBuffers(1, &normalVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
-    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), normals.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    // Vertex normals
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     glEnableVertexAttribArray(1);
+
+    // Texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+    glEnableVertexAttribArray(2);
 
     // Unbind buffer and VAO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+#pragma endregion
+}
+
+void CaveGenerator::generateCrystals(const Model& crystalModel) {
+    crystals.clear();
+
+    float crystalPlacementThreshold = 0.8f;
+    int crystalCount = 0; // Add a counter to keep track of the number of crystals generated
+
+    for (int z = 0; z < depth; ++z) {
+        for (int y = 1; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                if (noiseValues[z][y][x] > crystalPlacementThreshold && isSolid(x, y - 1, z)) {
+                    if (!isSolid(x, y, z)) {
+                        crystals.emplace_back(glm::vec3(x, y, z), crystalModel);
+                        crystalCount++; // Increment the crystal counter
+
+                        // Debug print for each crystal position
+                        std::cout << "Crystal placed at: (" << x << ", " << y << ", " << z << ")" << std::endl;
+                    }
+                }
+            }
+        }
+    }
+
+    // Print the total number of crystals generated
+    std::cout << "Total number of crystals generated: " << crystalCount << std::endl;
 }
 
 void CaveGenerator::render() {
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 3);
+    glDrawArrays(GL_TRIANGLES, 0, vertexCount);
     glBindVertexArray(0);
 }
 
 float CaveGenerator::perlinNoise(int x, int y, int z) {
-    float scale = 0.08f; // Adjusted scale for broader features
+    // Adjusted scales for larger coherent areas
+    float scaleX = 0.05f; // Larger scale for x-axis
+    float scaleY = 0.05f; // Larger scale for y-axis
+    float scaleZ = 0.05f; // Larger scale for z-axis
+
     float noise = 0.0f;
     float amplitude = 1.0f;
     float frequency = 1.0f;
-    float persistence = 0.65f; // Adjusted persistence for variation in density
-    int octaves = 4; // Keep octaves reasonable to prevent too much fine detail
+    float persistence = 0.5f;
+    int octaves = 3;
 
     for (int i = 0; i < octaves; i++) {
-        glm::vec3 pos = glm::vec3(x * scale * frequency, y * scale * frequency, z * scale * frequency);
+        glm::vec3 pos = glm::vec3(x * scaleX * frequency, y * scaleY * frequency, z * scaleZ * frequency);
         noise += amplitude * glm::perlin(pos);
         amplitude *= persistence;
         frequency *= 2.0f;
@@ -90,14 +157,11 @@ bool CaveGenerator::hasNeighbour(int x, int y, int z, glm::vec3 direction) {
     return isSolid(x + direction.x, y + direction.y, z + direction.z);
 }
 
-
 bool CaveGenerator::isSolid(int x, int y, int z) {
-    float threshold = 0.4f; // Lower threshold for more solid blocks
-    float noiseValue = perlinNoise(x, y, z);
-    return noiseValue > threshold;
+    return noiseValues[z][y][x] < threshold;
 }
 
-void CaveGenerator::addFace(int x, int y, int z, glm::vec3 normal) {
+void CaveGenerator::addFace(std::vector<Vertex>& vertexData, int x, int y, int z, glm::vec3 normal) {
     const float blockSize = 1.0f;
 
     // Determine the starting corner based on the normal
@@ -142,27 +206,6 @@ void CaveGenerator::addFace(int x, int y, int z, glm::vec3 normal) {
     glm::vec3 topLeft = startCorner + up;
     glm::vec3 topRight = startCorner + up + right;
 
-    /* Debug
-    std::cout << "Initial start corner: (" << startCorner.x << ", " << startCorner.y << ", " << startCorner.z << ")\n";
-
-    // Debug: Output the direction vectors
-    std::cout << "Right vector: (" << right.x << ", " << right.y << ", " << right.z << ")\n";
-    std::cout << "Up vector: (" << up.x << ", " << up.y << ", " << up.z << ")\n";
-
-    // Debug: Output the calculated corners for this face
-    std::cout << "Adding Face with normal (" << normal.x << ", " << normal.y << ", " << normal.z << ")\n";
-    std::cout << "Start corner: (" << startCorner.x << ", " << startCorner.y << ", " << startCorner.z << ")\n";
-    std::cout << "Bottom left: (" << bottomLeft.x << ", " << bottomLeft.y << ", " << bottomLeft.z << ")\n";
-    std::cout << "Bottom right: (" << bottomRight.x << ", " << bottomRight.y << ", " << bottomRight.z << ")\n";
-    std::cout << "Top left: (" << topLeft.x << ", " << topLeft.y << ", " << topLeft.z << ")\n";
-    std::cout << "Top right: (" << topRight.x << ", " << topRight.y << ", " << topRight.z << ")\n";
-
-    // Add two triangles for the face ensuring the correct winding order
-    // Debug: Output the order of vertices being added
-    std::cout << "Adding vertices in order: bottomLeft, topLeft, topRight, bottomLeft, topRight, bottomRight\n";
-
-    */
-
     // Add vertices for two triangles
     vertices.insert(vertices.end(), { bottomLeft.x, bottomLeft.y, bottomLeft.z,
                                       topLeft.x, topLeft.y, topLeft.z,
@@ -175,6 +218,85 @@ void CaveGenerator::addFace(int x, int y, int z, glm::vec3 normal) {
     for (int i = 0; i < 6; ++i) {
         normals.insert(normals.end(), { normal.x, normal.y, normal.z });
     }
+
+    // Texture coordinates for each vertex of the face
+    std::vector<glm::vec2> texCoords = {
+        glm::vec2(0.0f, 0.0f), // Bottom left
+        glm::vec2(0.0f, 1.0f), // Top left
+        glm::vec2(1.0f, 1.0f), // Top right
+        glm::vec2(0.0f, 0.0f), // Bottom left
+        glm::vec2(1.0f, 1.0f), // Top right
+        glm::vec2(1.0f, 0.0f)  // Bottom right
+    };
+
+    for (int i = 0; i < 6; ++i) {
+        Vertex vertex;
+        // Assign positions based on the order of vertices for two triangles
+        glm::vec3 positions[6] = { bottomLeft, topLeft, topRight, bottomLeft, topRight, bottomRight };
+        vertex.position = positions[i];
+        vertex.normal = normal;
+        vertex.texCoords = texCoords[i];
+        vertexData.push_back(vertex);
+    }
 }
 
+void CaveGenerator::generatePerlinWorm(int startX, int startY, int startZ, int length, float thickness) {
+    float wormX = startX;
+    float wormY = startY;
+    float wormZ = startZ;
+
+    glm::vec3 direction = glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)); // Initial direction
+
+    for (int i = 0; i < length; ++i) {
+        // Slightly adjust the direction using Perlin noise
+        direction.x += glm::perlin(glm::vec3(wormX, wormY, wormZ)) * 0.2f - 0.1f; // -0.1 to 0.1
+        direction.y += glm::perlin(glm::vec3(wormY, wormZ, wormX)) * 0.2f - 0.1f;
+        direction.z += glm::perlin(glm::vec3(wormZ, wormX, wormY)) * 0.2f - 0.1f;
+        direction = glm::normalize(direction); // Normalize to maintain consistent speed
+
+        // Move the worm based on direction
+        wormX += direction.x * thickness * 0.5f;
+        wormY += direction.y * thickness * 0.5f;
+        wormZ += direction.z * thickness * 0.5f;
+
+        // Carve the tunnel
+        carveTunnel(wormX, wormY, wormZ, thickness);
+    }
+}
+
+void CaveGenerator::carveTunnel(float x, float y, float z, float radius) {
+    int startX = std::max(0, static_cast<int>(x - radius));
+    int startY = std::max(0, static_cast<int>(y - radius));
+    int startZ = std::max(0, static_cast<int>(z - radius));
+
+    int endX = std::min(width, static_cast<int>(x + radius));
+    int endY = std::min(height, static_cast<int>(y + radius));
+    int endZ = std::min(depth, static_cast<int>(z + radius));
+
+    for (int i = startX; i < endX; ++i) {
+        for (int j = startY; j < endY; ++j) {
+            for (int k = startZ; k < endZ; ++k) {
+                if (glm::distance(glm::vec3(x, y, z), glm::vec3(i, j, k)) < radius) {
+                    // Mark the block as non-solid (or remove it)
+                    noiseValues[k][j][i] = 1.0f; // Assuming higher noise value means non-solid
+                }
+            }
+        }
+    }
+}
+
+void CaveGenerator::carveCorridor(int startX, int startY, int startZ, int corridorWidth, int corridorHeight, int corridorDepth) {
+    int endX = std::min(width, startX + corridorWidth);
+    int endY = std::min(height, startY + corridorHeight);
+    int endZ = std::min(depth, startZ + corridorDepth);
+
+    for (int x = startX; x < endX; ++x) {
+        for (int y = startY; y < endY; ++y) {
+            for (int z = startZ; z < endZ; ++z) {
+                // Mark the block as non-solid (or remove it) to create the corridor
+                noiseValues[z][y][x] = 1.0f; // Assuming higher noise value means non-solid
+            }
+        }
+    }
+}
 
