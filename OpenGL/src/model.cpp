@@ -8,22 +8,11 @@ Model::Model(std::string const& path, bool gamma, bool isLightSource) : gammaCor
 }
 
 // Draw method
-void Model::Draw(Shader& shader) {
-    if (isLightSource) {
-        // Extract position from modelMatrix
-        glm::vec3 lightPos = glm::vec3(model[3]);
-
-        // Set light properties in shader
-        shader.use();
-        shader.setVec3("light.position", lightPos);
-        shader.setVec3("light.color", glm::vec3(1.0f)); // white light
-    }
-    else {
-        shader.use();
-        shader.setMat4("model", model); // Pass the corrected model matrix to the shader
-        for (unsigned int i = 0; i < meshes.size(); i++)
-            meshes[i].Draw(shader);
-    }
+void Model::Draw(Shader& shader, glm::mat4& modelMatrix) {
+    shader.use();
+    shader.setMat4("model", modelMatrix);
+    for (unsigned int i = 0; i < meshes.size(); i++)
+        meshes[i].Draw(shader);
 }
 
 // loadModel implementation

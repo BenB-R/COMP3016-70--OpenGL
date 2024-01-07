@@ -19,7 +19,6 @@ CaveGenerator::CaveGenerator(int depth, int width, int height, float threshold)
             }
         }
     }
-
     // Generate and apply Perlin worm
     generatePerlinWorm(50, 12, 12, 1000, 25.0);
     carveCorridor(20, 40, 20, 10, 8, 40);
@@ -93,30 +92,26 @@ void CaveGenerator::generateCave() {
 #pragma endregion
 }
 
-void CaveGenerator::generateCrystals(const Model& crystalModel) {
-    crystals.clear();
+void CaveGenerator::generateCrystals() {
+    srand(static_cast<unsigned int>(time(0))); // Seed the random number generator
 
-    float crystalPlacementThreshold = 0.8f;
-    int crystalCount = 0; // Add a counter to keep track of the number of crystals generated
+    float crystalSpawnProbability = 0.01f; // 5% chance to spawn a crystal
 
     for (int z = 0; z < depth; ++z) {
-        for (int y = 1; y < height; ++y) {
+        for (int y = 1; y < height; ++y) { // Start from y = 1 to ensure there's a block below
             for (int x = 0; x < width; ++x) {
-                if (noiseValues[z][y][x] > crystalPlacementThreshold && isSolid(x, y - 1, z)) {
-                    if (!isSolid(x, y, z)) {
-                        crystals.emplace_back(glm::vec3(x, y, z), crystalModel);
-                        crystalCount++; // Increment the crystal counter
-
-                        // Debug print for each crystal position
-                        std::cout << "Crystal placed at: (" << x << ", " << y << ", " << z << ")" << std::endl;
+                // Check if the current position is an open space and has a solid block below
+                if (isSolid(x, y - 1, z) && !isSolid(x, y, z)) {
+                    // Generate a random number between 0 and 1
+                    float randomValue = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+                    // Check if the random value is less than the probability
+                    if (randomValue < crystalSpawnProbability) {
+                        crystalPositions.push_back(glm::vec3(x, y, z));
                     }
                 }
             }
         }
     }
-
-    // Print the total number of crystals generated
-    std::cout << "Total number of crystals generated: " << crystalCount << std::endl;
 }
 
 void CaveGenerator::render() {

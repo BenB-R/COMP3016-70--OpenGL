@@ -17,7 +17,7 @@ public:
     std::vector<std::vector<std::vector<float>>> noiseValues;
     std::vector<Crystal> crystals;
     const std::vector<glm::vec3>& getCrystalPositions() const { return crystalPositions; };
-    void generateCrystals(const Model& crystalModel);
+    void generateCrystals();
 
     struct Vertex {
         glm::vec3 position;

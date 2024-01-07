@@ -37,6 +37,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="models\wooden_plank.fbx" />
+    <None Include="shaders\anim_fragment_shader.fs" />
+    <None Include="shaders\anim_vertex_shader.vs" />
     <None Include="shaders\cave_fragment_shader.fs" />
     <None Include="shaders\cave_vertex_shader.vs" />
     <None Include="shaders\fragment_shader.fs" />

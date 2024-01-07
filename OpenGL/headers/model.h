@@ -29,15 +29,16 @@ public:
     Model(std::string const& path, bool gamma = false, bool isLightSource = false);
 
     // Draw the model
-    void Draw(Shader& shader);
+    void Draw(Shader& shader, glm::mat4& modelMatrix);
 
 private:
     // Private methods
-    glm::mat4 model = glm::mat4(1.0f);
+    //glm::mat4 model = glm::mat4(1.0f);
     void loadModel(std::string const& path);
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
     std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
+    void transformNode(aiNode* node, const glm::mat4& transform);
 };
 
 #endif // MODEL_H

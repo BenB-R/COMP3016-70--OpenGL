@@ -6,6 +6,8 @@ in vec2 TexCoord; // Texture coordinates passed from the vertex shader
 in vec3 FragPos; // World position passed from the vertex shader
 
 uniform sampler2D texture1;
+uniform sampler2D texture2;
+uniform float blendFactor; // Blend factor for textures
 
 uniform vec3 objectColor; // Color of the object
 uniform vec3 lightColor;  // Color of the first light
@@ -20,11 +22,16 @@ uniform vec3 viewPos; // Camera position for specular calculation
 
 void main()
 {
-    // Sample the texture color
-    vec4 texColor = texture(texture1, TexCoord);
+    // Sample the texture colors
+    vec4 texColor1 = texture(texture1, TexCoord);
+    vec4 texColor2 = texture(texture2, TexCoord);
 
-    // Ambient
-    vec3 ambient = ambientStrength * lightColor * 1.5; // Increased ambient strength
+    // Mix the two textures based on the blend factor
+    vec4 finalColor = mix(texColor1, texColor2, blendFactor);
+
+    // Ambient light calculation for each light source
+    vec3 ambient = ambientStrength * lightColor;
+    vec3 ambient2 = secondAmbientStrength * secondLightColor;
 
     // Normals
     vec3 norm = normalize(normal);
@@ -37,15 +44,15 @@ void main()
     float diff2 = max(dot(norm, secondLightDir), 0.0);
     vec3 diffuse2 = diff2 * secondLightColor;
 
-    // Specular Lighting
-    vec3 viewDir = normalize(viewPos - FragPos); // Corrected view direction
+    // Specular Lighting for first light
+    vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = spec * lightColor * 0.5; // Specular component for the first light
+    vec3 specular = spec * lightColor;
 
     // Combine the effects
-    vec3 result = (ambient + diffuse + diffuse2 + specular) * texColor.rgb;
+    vec3 result = (ambient + diffuse + specular + ambient2 + diffuse2) * finalColor.rgb;
     result = mix(result, objectColor, 0.2); // Blend with object color
 
-    FragColor = vec4(result, texColor.a); // Use the alpha from the texture
+    FragColor = vec4(result, finalColor.a); // Use the alpha from the mixed texture
 }
