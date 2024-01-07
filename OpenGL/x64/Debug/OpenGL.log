@@ -1,10 +1,21 @@
-﻿  main.cpp
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(138,28): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(241,49): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(305,21): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(306,21): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(310,23): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(311,23): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(312,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\main.cpp(313,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+﻿  CaveGenerator.cpp
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\src\CaveGenerator.cpp(75,36): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\src\CaveGenerator.cpp(161,56): warning C4244: 'argument': conversion from 'T' to 'int', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\src\CaveGenerator.cpp(161,39): warning C4244: 'argument': conversion from 'T' to 'int', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\src\CaveGenerator.cpp(161,22): warning C4244: 'argument': conversion from 'T' to 'int', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\src\CaveGenerator.cpp(248,17): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\src\CaveGenerator.cpp(249,17): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\src\CaveGenerator.cpp(250,17): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
   OpenGL.vcxproj -> C:\Users\benri\source\repos\COMP3016-70%-OpenGL\OpenGL\x64\Debug\OpenGL.exe

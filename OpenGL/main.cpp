@@ -192,6 +192,7 @@ int main()
         caveShader.setInt("texture1", 0);  // Assuming your shader has a uniform named 'texture1'
         caveShader.setInt("texture2", 1);
         caveShader.setFloat("blendFactor", 0.2f);
+        caveShader.setFloat("cameraY", camera.Position.y);
 
         caveShader.setMat4("projection", projection);
         caveShader.setMat4("view", view);

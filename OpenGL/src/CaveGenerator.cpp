@@ -20,7 +20,7 @@ CaveGenerator::CaveGenerator(int depth, int width, int height, float threshold)
         }
     }
     // Generate and apply Perlin worm
-    generatePerlinWorm(50, 12, 12, 1000, 25.0);
+    //generatePerlinWorm(50, 12, 12, 1000, 25.0);
     carveCorridor(20, 40, 20, 10, 8, 40);
 }
 
@@ -120,18 +120,26 @@ void CaveGenerator::render() {
     glBindVertexArray(0);
 }
 
-float CaveGenerator::perlinNoise(int x, int y, int z) {
-    // Adjusted scales for larger coherent areas
-    float scaleX = 0.05f; // Larger scale for x-axis
-    float scaleY = 0.05f; // Larger scale for y-axis
-    float scaleZ = 0.05f; // Larger scale for z-axis
 
+float CaveGenerator::perlinNoise(int x, int y, int z) {
+    // Noise parameters
+    float scaleX = 0.05f; // Scale for x-axis
+    float scaleY = 0.05f; // Scale for y-axis
+    float scaleZ = 0.05f; // Scale for z-axis
     float noise = 0.0f;
     float amplitude = 1.0f;
     float frequency = 1.0f;
     float persistence = 0.5f;
     int octaves = 3;
 
+    // Modify parameters for the new biome below the biome change level
+    if (y < biomeChangeYLevel) {
+        scaleX = 0.1f; // Larger scale for larger features
+        scaleY = 0.1f;
+        persistence = 0.7f; // Change in persistence for variation
+    }
+
+    // Generate noise using Perlin noise function
     for (int i = 0; i < octaves; i++) {
         glm::vec3 pos = glm::vec3(x * scaleX * frequency, y * scaleY * frequency, z * scaleZ * frequency);
         noise += amplitude * glm::perlin(pos);
@@ -141,6 +149,7 @@ float CaveGenerator::perlinNoise(int x, int y, int z) {
 
     return noise;
 }
+
 
 bool CaveGenerator::hasNeighbour(int x, int y, int z, glm::vec3 direction) {
     // Check for boundaries

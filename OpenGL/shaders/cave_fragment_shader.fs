@@ -20,6 +20,12 @@ uniform vec3 secondAmbientStrength; // Second light ambient strength
 
 uniform vec3 viewPos; // Camera position for specular calculation
 
+// New uniform for the camera's Y position
+uniform float cameraY;  
+
+// Biome change threshold
+const float biomeChangeYLevel = 20.0;
+
 void main()
 {
     // Sample the texture colors
@@ -32,6 +38,12 @@ void main()
     // Ambient light calculation for each light source
     vec3 ambient = ambientStrength * lightColor;
     vec3 ambient2 = secondAmbientStrength * secondLightColor;
+
+    // Adjust ambient light based on the biome
+    if (cameraY < biomeChangeYLevel) {
+        ambient = vec3(0.2, 0.2, 0.5);  // Example: darker, bluish tone
+        ambient2 = vec3(0.2, 0.2, 0.5);
+    }
 
     // Normals
     vec3 norm = normalize(normal);
