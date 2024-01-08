@@ -25,8 +25,6 @@ To look around the scene you can use standard mouse and keyboard controls + shif
 ## Getting Started
 
 ### Dependencies
-
-- C++17 compatible compiler
 - [GLFW](https://www.glfw.org/) for window management
 - [GLAD](https://glad.dav1d.de/) for OpenGL function loading
 - [GLM](https://github.com/g-truc/glm) for mathematics
