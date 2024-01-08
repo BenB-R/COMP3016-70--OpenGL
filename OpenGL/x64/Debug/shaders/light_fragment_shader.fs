@@ -3,25 +3,31 @@ out vec4 FragColor;
 
 in vec3 Normal;
 in vec3 FragPos;
+in vec2 TexCoords;
 
+uniform sampler2D texture1;
 uniform vec3 viewPos; // Camera position
-uniform vec3 glowColor = vec3(1.0, 0.0, 0.0); // Dim blue color
 
-void main()
-{
+// uniforms to control the glow effect
+uniform float maxGlowIntensity; // The maximum intensity of the glow
+uniform float glowVisibilityDistance; // The distance at which the glow is fully visible
+uniform float glowFactor; // A factor to adjust the attenuation of glow over distance
+
+void main() {
+    // Texture color
+    vec3 textureColor = texture(texture1, TexCoords).rgb;
+    
     // Calculate the distance from the camera to the fragment
     float distance = length(viewPos - FragPos);
 
-    // Calculate the glow intensity based on the distance
-    float glowIntensity = 1.0 / (distance * distance);
+    // Adjust the glow intensity based on the distance, with a cap on the maximum intensity
+    float attenuation = 1.0 / (1.0 + glowFactor * distance * distance);
+    float glowIntensity = clamp(attenuation, 0.0, maxGlowIntensity); // Use the uniform to clamp the value
 
-    glowIntensity = clamp(glowIntensity, 0.0, 1.0); // Ensure it's between 0 and 1
+    // Apply glow based on glowColor 
+    vec3 glowColor = vec3(0.0, 1.0, 0.0); // Example green glow for visibility
+    vec3 colorWithGlow = mix(textureColor, glowColor, glowIntensity);
 
-    // Base color of the crystal (adjust as needed)
-    vec3 baseColor = vec3(0.2, 0.3, 0.7); 
-
-    // Blend the base color with the glow color
-    vec3 color = mix(baseColor, glowColor, glowIntensity);
-
-    FragColor = vec4(color, 1.0);
+    // Final color with glow applied
+    FragColor = vec4(colorWithGlow, 1.0);
 }
