@@ -15,7 +15,6 @@ To look around the scene you can use standard mouse and keyboard controls + shif
 To execute the program, please navigate to the OpenGL/x64/Debug directory. Within this directory, you'll find the OpenGL.exe executable file. Run this file to start the application, ensuring that all necessary resources are located within the same folder for proper operation.
 
 ## Youtube video
-- https://www.youtube.com/watch?v=p5mzPo0so-U
 - [Abandoned Mineshaft](https://www.youtube.com/watch?v=p5mzPo0so-U)
 
 ## Program Architecture
