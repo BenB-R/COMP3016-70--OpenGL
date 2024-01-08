@@ -1,5 +1,5 @@
 # OpenGL Abandoned Mineshaft Project
-This project is a 3D abandonded mineshaft, cave generation and visualization tool implemented in C++ using OpenGL 3.3. It utilises Perlin noise to procedurally generate the cave structure and supports features like objects that make up an abandonded mineshaft, crystal formation, lighting, and a controllable camera system.
+This project is a 3D abandonded mineshaft, cave generation and visualisation tool implemented in C++ using OpenGL 3.3. It utilises Perlin noise to procedurally generate the cave structure and supports features like objects that make up an abandonded mineshaft, crystal formation, lighting, and a controllable camera system.
 ## User Interaction
 ### Controls
 To look around the scene you can use standard mouse and keyboard controls + shift for faster movement
