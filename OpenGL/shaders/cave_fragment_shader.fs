@@ -20,6 +20,10 @@ uniform vec3 secondAmbientStrength; // Second light ambient strength
 
 uniform vec3 viewPos; // Camera position for specular calculation
 
+// Torch light properties
+uniform vec3 torchPos; // Position of the torch
+uniform vec3 torchLightColor; // Color of the torch light (e.g., orange)
+
 // New uniform for the camera's Y position
 uniform float cameraY;  
 
@@ -35,7 +39,7 @@ void main()
     // Mix the two textures based on the blend factor
     vec4 finalColor = mix(texColor1, texColor2, blendFactor);
 
-    // Ambient light calculation for each light source
+    // Adjust the light color and strength to be less bright
     vec3 ambient = ambientStrength * lightColor;
     vec3 ambient2 = secondAmbientStrength * secondLightColor;
 
@@ -48,23 +52,26 @@ void main()
     // Normals
     vec3 norm = normalize(normal);
 
-    // First Light's Diffuse
+    // Calculate lighting from the main light sources
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightColor;
-
-    // Second Light's Diffuse
     float diff2 = max(dot(norm, secondLightDir), 0.0);
     vec3 diffuse2 = diff2 * secondLightColor;
 
-    // Specular Lighting for first light
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = spec * lightColor;
+    // Calculate torch light (Point light with attenuation)
+    float distance = length(torchPos - FragPos);
+    float constant = 1.0;
+    float linear = 0.09;
+    float quadratic = 0.032;
+    float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
 
-    // Combine the effects
-    vec3 result = (ambient + diffuse + specular + ambient2 + diffuse2) * finalColor.rgb;
+    vec3 torchDir = normalize(torchPos - FragPos);
+    float torchDiff = max(dot(norm, torchDir), 0.0);
+    vec3 torchDiffuse = torchDiff * torchLightColor * attenuation;
+
+    // Add torch light to the scene
+    vec3 result = (ambient + diffuse + ambient2 + diffuse2 + torchDiffuse) * finalColor.rgb;
     result = mix(result, objectColor, 0.2); // Blend with object color
 
-    FragColor = vec4(result, finalColor.a); // Use the alpha from the mixed texture
+    FragColor = vec4(result, finalColor.a); 
 }

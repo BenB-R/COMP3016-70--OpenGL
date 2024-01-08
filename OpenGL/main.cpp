@@ -1,5 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <irrklang/irrKlang.h>
+using namespace irrklang;
 
 #include "headers/shader.h"
 #include "headers/stb_image.h"
@@ -13,13 +15,12 @@
 
 #include <iostream>
 
-// Function prototypes
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window, float deltatime);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void PrintMatrix(const glm::mat4& mat);
-void CheckShaderCompilation(GLuint shader, std::string type);
 
 #pragma region Settings
 const unsigned int SCR_WIDTH = 1280;
@@ -35,7 +36,6 @@ float lastY = SCR_HEIGHT / 2.0f;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-
 
 int main()
 {
@@ -67,20 +67,13 @@ int main()
 
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
-#pragma endregion
 
-    Shader ourShader("shaders/vertex_shader.vs", "shaders/fragment_shader.fs");
-    Shader crystalShader("shaders/light_vertex_shader.vs", "shaders/light_fragment_shader.fs");
-    Shader caveShader("shaders/cave_vertex_shader.vs", "shaders/cave_fragment_shader.fs");
-    Shader animShader("shaders/anim_vertex_shader.vs", "shaders/anim_fragment_shader.fs");
-
-    Model crystal("models/crystal/crystal.obj");
-    Model mineStruct1("models/mineshaft/mineshaft_structure1.obj");
-    Model pick("models/pick/pick.dae");
-    
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    // Initialize irrKlang sound engine
+    ISoundEngine* SoundEngine = createIrrKlangDevice();
+    if (!SoundEngine) {
+        std::cerr << "Could not startup engine" << std::endl;
+        // handle error (e.g., exit the program)
+    }
 
     // set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -88,10 +81,35 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#pragma endregion
+
+#pragma region definitions
+    Shader ourShader("shaders/vertex_shader.vs", "shaders/fragment_shader.fs"); // General objects
+    Shader crystalShader("shaders/light_vertex_shader.vs", "shaders/light_fragment_shader.fs"); // Crystals
+    Shader caveShader("shaders/cave_vertex_shader.vs", "shaders/cave_fragment_shader.fs"); // Cave
+    Shader animShader("shaders/anim_vertex_shader.vs", "shaders/anim_fragment_shader.fs"); // for animation
+    Shader torchShader("shaders/torch_vertex_shader.vs", "shaders/torch_fragment_shader.fs"); // for torch
+
+    Model crystal("models/crystal/crystal.obj");
+    Model mineStruct1("models/mineshaft/mineshaft_structure1.obj");
+    Model rail("models/rail/rail.obj");
+    Model minecart("models/minecart/minecart.obj");
+    Model torch("models/torch/torch.obj");
+    Model pick("models/pick/pick.dae");
+
+    // Play background music
+    SoundEngine->play2D("audio/background_music.mp3", true);
+
+#pragma endregion
+    
+#pragma region cave setup
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
     
     // load and generate the texture
     int width, height, nrChannels;
-    unsigned char* data = stbi_load("textures/stone.png", &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load("textures/stone.jpg", &width, &height, &nrChannels, 0);
     if (data)
     {
         std::cout << "Stone texture loaded" << std::endl;
@@ -123,13 +141,12 @@ int main()
     }
     stbi_image_free(data2);
 
-
     CaveGenerator cave(75, 50, 75, 0.5f);
     cave.generateCave();
     cave.generateCrystals();
     float rotationAngle = 0.0f;
+#pragma endregion
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 #pragma region Render Loop
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -179,7 +196,39 @@ int main()
         }
 #pragma endregion
 
+#pragma region torch
+        torchShader.use();
+
+        // Set the torch position and scale
+        glm::vec3 torchPosition = glm::vec3(29.8f, 42.0f, 25.0f); // Torch's position
+        glm::mat4 torchModel = glm::mat4(1.0f);
+        torchModel = glm::translate(torchModel, torchPosition);
+        torchModel = glm::scale(torchModel, glm::vec3(1.0f, 1.0f, 1.0f));
+        torchModel = glm::rotate(torchModel, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+        // Set the light properties
+        torchShader.setVec3("torchPos", torchPosition); // Use the same position for lightPos
+        torchShader.setVec3("viewPos", camera.Position);
+        torchShader.setVec3("lightColor", glm::vec3(1.0f, 0.5f, 0.0f)); // Dim orange light
+        torchShader.setVec3("objectColor", glm::vec3(1.0f, 1.0f, 1.0f)); // Torch color
+
+        // Bind texture if the torch model uses one
+        glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, torchTexture); // Bind the actual texture of the torch here
+        torchShader.setInt("texture1", 0);
+
+        // Set the matrices
+        torchShader.setMat4("projection", projection);
+        torchShader.setMat4("view", view);
+        torchShader.setMat4("model", torchModel);
+
+        // Draw the torch
+        torch.Draw(torchShader, torchModel);
+#pragma endregion
+
 #pragma region cave
+        float torchHeightOffset = 1.2f; // so the light is at the top of the torch
+        torchPosition.y += torchHeightOffset; // Move the light source up
         // Render Cave
         caveShader.use();
 
@@ -189,9 +238,13 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
+
+        caveShader.setVec3("torchPos", torchPosition);
+        caveShader.setVec3("torchLightColor", glm::vec3(1.0f, 0.5f, 0.0f)); // Orange light
+
         caveShader.setInt("texture1", 0);  // Assuming your shader has a uniform named 'texture1'
         caveShader.setInt("texture2", 1);
-        caveShader.setFloat("blendFactor", 0.2f);
+        caveShader.setFloat("blendFactor", 0.3f);
         caveShader.setFloat("cameraY", camera.Position.y);
 
         caveShader.setMat4("projection", projection);
@@ -251,6 +304,30 @@ int main()
         pick.Draw(animShader, pickModel);
 #pragma endregion
 
+#pragma region rail and minecart
+        // Render Rail
+        ourShader.use();
+
+        ourShader.setMat4("projection", projection);
+        ourShader.setMat4("view", view);
+
+        glm::mat4 railModel = glm::mat4(1.0f);
+        railModel = glm::translate(railModel, glm::vec3(28.0f, 40.1f, 36.0f));
+        railModel = glm::scale(railModel, glm::vec3(0.5f, 0.5f, 0.5f));
+        railModel = glm::rotate(railModel, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Rotate 90 degrees around the y-axis
+        ourShader.setMat4("model", railModel);
+        rail.Draw(ourShader, railModel);
+
+        // Render Minecart
+        glm::mat4 minecartModel = glm::mat4(1.0f);
+        minecartModel = glm::translate(minecartModel, glm::vec3(28.0f, 41.2f, 36.0f)); // Adjust position
+        minecartModel = glm::scale(minecartModel, glm::vec3(0.5f, 0.5f, 0.5f)); // Adjust scale
+        minecartModel = glm::rotate(minecartModel, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Rotate 90 degrees around the y-axis
+        ourShader.setMat4("model", minecartModel);
+        minecart.Draw(ourShader, minecartModel);
+#pragma endregion
+
+
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {
             std::cerr << "OpenGL error: " << err << std::endl;
@@ -265,13 +342,22 @@ int main()
     return 0;
 }
 
-// Callback implementation
+// Callback function for adjusting the viewport size when the GLFW window size changes.
+// This function is called automatically by GLFW whenever the window is resized.
+// Parameters:
+//   - window: A pointer to the GLFWwindow that was resized.
+//   - width: The new width of the window.
+//   - height: The new height of the window.
 void framebuffer_size_callback(GLFWwindow * window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-// Update the processInput function to handle camera movement
+// Processes user input and updates the camera position and view based on the input.
+// This function should be called every frame to handle continuous input detection.
+// Parameters:
+//   - window: A pointer to the GLFWwindow for detecting input events.
+//   - deltaTime: Time elapsed between the current and last frame, used for frame-rate independent movement.
 void processInput(GLFWwindow* window, float deltaTime)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -297,6 +383,12 @@ void processInput(GLFWwindow* window, float deltaTime)
         camera.processKeyboard(DOWN, deltaTime, isSprinting);
 }
 
+// Callback function for handling mouse movement events.
+// Updates the camera's orientation based on the mouse cursor's movement.
+// Parameters:
+//   - window: A pointer to the GLFWwindow that received the event.
+//   - xpos: The new x-coordinate of the cursor.
+//   - ypos: The new y-coordinate of the cursor.
 void mouseCallback(GLFWwindow * window, double xpos, double ypos) {
         if (firstMouse) {
             lastX = xpos;
@@ -312,35 +404,26 @@ void mouseCallback(GLFWwindow * window, double xpos, double ypos) {
         camera.processMouseMovement(xoffset, yoffset);
 }
 
+// Callback function for handling scroll wheel events.
+// Updates the camera's zoom level based on the scroll wheel movement.
+// Parameters:
+//   - window: A pointer to the GLFWwindow that received the event.
+//   - xoffset: The scroll wheel offset along the x-axis.
+//   - yoffset: The scroll wheel offset along the y-axis.
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.processMouseScroll(static_cast<float>(yoffset));
 }
 
+// Utility function for printing a 4x4 matrix.
+// Useful for debugging transformations and camera matrices.
+// Parameters:
+//   - mat: The glm::mat4 matrix to print.
 void PrintMatrix(const glm::mat4& mat) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             std::cout << mat[i][j] << " ";
         }
         std::cout << std::endl;
-    }
-}
-
-void CheckShaderCompilation(GLuint shader, std::string type) {
-    GLint success;
-    GLchar infoLog[1024];
-    if (type != "PROGRAM") {
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-        if (!success) {
-            glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-            std::cerr << "Shader compilation error of type: " << type << "\n" << infoLog << std::endl;
-        }
-    }
-    else {
-        glGetProgramiv(shader, GL_LINK_STATUS, &success);
-        if (!success) {
-            glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-            std::cerr << "Shader linking error: \n" << infoLog << std::endl;
-        }
     }
 }

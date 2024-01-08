@@ -3,6 +3,14 @@
 #include <glm/gtc/noise.hpp> // For Perlin noise
 #include <iostream>
 
+
+// Constructor for the CaveGenerator class. Initializes the cave with specified dimensions and threshold
+// for determining solid blocks based on Perlin noise.
+// Parameters:
+//   - depth: Depth of the cave (z-axis).
+//   - width: Width of the cave (x-axis).
+//   - height: Height of the cave (y-axis).
+//   - threshold: Noise threshold for determining solid blocks.
 CaveGenerator::CaveGenerator(int depth, int width, int height, float threshold)
     : depth(depth), width(width), height(height), threshold(threshold) {
     glGenVertexArrays(1, &vao);
@@ -20,15 +28,17 @@ CaveGenerator::CaveGenerator(int depth, int width, int height, float threshold)
         }
     }
     // Generate and apply Perlin worm
-    //generatePerlinWorm(50, 12, 12, 1000, 25.0);
     carveCorridor(20, 40, 20, 10, 8, 40);
 }
 
+// Destructor for the CaveGenerator class. Cleans up OpenGL resources by deleting the VAO and VBO.
 CaveGenerator::~CaveGenerator() {
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
 }
 
+// Generates the cave geometry by populating vertex data based on Perlin noise and determining
+// which blocks are solid. It also sets up the VAO and VBO with the generated vertex data.
 void CaveGenerator::generateCave() {
     std::vector<Vertex> vertexData;
     vertices.clear();
@@ -92,6 +102,8 @@ void CaveGenerator::generateCave() {
 #pragma endregion
 }
 
+// Generates crystal formations within the cave by randomly placing crystals at certain positions
+// based on a probability check.
 void CaveGenerator::generateCrystals() {
     srand(static_cast<unsigned int>(time(0))); // Seed the random number generator
 
@@ -114,13 +126,17 @@ void CaveGenerator::generateCrystals() {
     }
 }
 
+// Renders the cave geometry by binding the VAO and drawing the vertices as triangles.
 void CaveGenerator::render() {
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, vertexCount);
     glBindVertexArray(0);
 }
 
-
+// Generates Perlin noise value for a given block position in the cave.
+// This noise is used to determine the solidity of blocks.
+// Parameters:
+//   - x, y, z: The x, y, z coordinates of the block in the cave.
 float CaveGenerator::perlinNoise(int x, int y, int z) {
     // Noise parameters
     float scaleX = 0.05f; // Scale for x-axis
@@ -150,7 +166,10 @@ float CaveGenerator::perlinNoise(int x, int y, int z) {
     return noise;
 }
 
-
+// Determines if a given block at position (x, y, z) has a neighboring solid block in the specified direction.
+// Parameters:
+//   - x, y, z: The x, y, z coordinates of the block in the cave.
+//   - direction: A glm::vec3 vector indicating the direction to check for a neighbor.
 bool CaveGenerator::hasNeighbour(int x, int y, int z, glm::vec3 direction) {
     // Check for boundaries
     if (x + direction.x < 0 || x + direction.x >= width ||
@@ -161,10 +180,19 @@ bool CaveGenerator::hasNeighbour(int x, int y, int z, glm::vec3 direction) {
     return isSolid(x + direction.x, y + direction.y, z + direction.z);
 }
 
+// Checks if a block at a given position is solid based on the noise value and threshold.
+// Parameters:
+//   - x, y, z: The x, y, z coordinates of the block in the cave.
 bool CaveGenerator::isSolid(int x, int y, int z) {
     return noiseValues[z][y][x] < threshold;
 }
 
+// Adds the vertices for a block face to the vertex data if the block at position (x, y, z) is solid
+// and doesn't have a neighboring block in the direction of the normal.
+// Parameters:
+//   - vertexData: A reference to the vector of Vertex structs where the vertex data will be added.
+//   - x, y, z: The x, y, z coordinates of the block in the cave.
+//   - normal: A glm::vec3 vector indicating the normal direction of the face to be added.
 void CaveGenerator::addFace(std::vector<Vertex>& vertexData, int x, int y, int z, glm::vec3 normal) {
     const float blockSize = 1.0f;
 
@@ -244,51 +272,10 @@ void CaveGenerator::addFace(std::vector<Vertex>& vertexData, int x, int y, int z
     }
 }
 
-void CaveGenerator::generatePerlinWorm(int startX, int startY, int startZ, int length, float thickness) {
-    float wormX = startX;
-    float wormY = startY;
-    float wormZ = startZ;
-
-    glm::vec3 direction = glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)); // Initial direction
-
-    for (int i = 0; i < length; ++i) {
-        // Slightly adjust the direction using Perlin noise
-        direction.x += glm::perlin(glm::vec3(wormX, wormY, wormZ)) * 0.2f - 0.1f; // -0.1 to 0.1
-        direction.y += glm::perlin(glm::vec3(wormY, wormZ, wormX)) * 0.2f - 0.1f;
-        direction.z += glm::perlin(glm::vec3(wormZ, wormX, wormY)) * 0.2f - 0.1f;
-        direction = glm::normalize(direction); // Normalize to maintain consistent speed
-
-        // Move the worm based on direction
-        wormX += direction.x * thickness * 0.5f;
-        wormY += direction.y * thickness * 0.5f;
-        wormZ += direction.z * thickness * 0.5f;
-
-        // Carve the tunnel
-        carveTunnel(wormX, wormY, wormZ, thickness);
-    }
-}
-
-void CaveGenerator::carveTunnel(float x, float y, float z, float radius) {
-    int startX = std::max(0, static_cast<int>(x - radius));
-    int startY = std::max(0, static_cast<int>(y - radius));
-    int startZ = std::max(0, static_cast<int>(z - radius));
-
-    int endX = std::min(width, static_cast<int>(x + radius));
-    int endY = std::min(height, static_cast<int>(y + radius));
-    int endZ = std::min(depth, static_cast<int>(z + radius));
-
-    for (int i = startX; i < endX; ++i) {
-        for (int j = startY; j < endY; ++j) {
-            for (int k = startZ; k < endZ; ++k) {
-                if (glm::distance(glm::vec3(x, y, z), glm::vec3(i, j, k)) < radius) {
-                    // Mark the block as non-solid (or remove it)
-                    noiseValues[k][j][i] = 1.0f; // Assuming higher noise value means non-solid
-                }
-            }
-        }
-    }
-}
-
+// Carves out a corridor in the cave by marking blocks as non-solid within the specified range.
+// Parameters:
+//   - startX, startY, startZ: Starting x, y, z coordinates of the corridor.
+//   - corridorWidth, corridorHeight, corridorDepth: Width, height, and depth of the corridor to carve out.
 void CaveGenerator::carveCorridor(int startX, int startY, int startZ, int corridorWidth, int corridorHeight, int corridorDepth) {
     int endX = std::min(width, startX + corridorWidth);
     int endY = std::min(height, startY + corridorHeight);
@@ -303,4 +290,3 @@ void CaveGenerator::carveCorridor(int startX, int startY, int startZ, int corrid
         }
     }
 }
-

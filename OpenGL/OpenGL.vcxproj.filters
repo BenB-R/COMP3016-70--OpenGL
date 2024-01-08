@@ -100,6 +100,12 @@
     <None Include="shaders\anim_vertex_shader.vs">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="shaders\torch_fragment_shader.fs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\torch_vertex_shader.vs">
+      <Filter>Shader Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="textures\bear.png">
