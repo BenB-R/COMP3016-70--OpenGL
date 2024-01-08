@@ -9,10 +9,10 @@ To look around the scene you can use standard mouse and keyboard controls + shif
 - W: forward
 - A: left
 - S: backwards
-- Q: down
-- E: up
+- Q: up
+- E: down
 - Left Shift: move faster
-- mouse: look around
+- mouse: rotate camera
 
 ## Features
 
@@ -21,6 +21,9 @@ To look around the scene you can use standard mouse and keyboard controls + shif
 - Dynamic lighting with torches that cast soft shadows
 - A first-person camera system for exploring the cave
 - Support for loading and rendering 3D models
+
+## Running it
+To execute the program, please navigate to the OpenGL/x64/Debug directory. Within this directory, you'll find the OpenGL.exe executable file. Run this file to start the application, ensuring that all necessary resources are located within the same folder for proper operation.
 
 ## Dependencies
 - [GLFW](https://www.glfw.org/) for window management
